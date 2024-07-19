@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Reading Companion",
+  "version": "1.0",
+  "description": "A tool to help you read and annotate text and transcripts.",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png"
+  }
+}
