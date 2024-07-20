@@ -4,7 +4,7 @@ module.exports = {
   entry: './src/index.js',
   output: {
     filename: 'popup.js',
-    path: path.resolve(__dirname, '.'), // Output to the root directory
+    path: path.resolve(__dirname, '.'),
   },
   module: {
     rules: [
