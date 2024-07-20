@@ -1,0 +1,27 @@
+/* src/styles/ReadingCompanion.css */
+
+.reading-companion {
+  font-size: 18px; /* Increase base font size */
+}
+
+.reading-companion h1 {
+  font-size: 2.5em; /* Larger title */
+}
+
+.reading-companion .progress-label {
+  font-size: 1.2em; /* Slightly larger progress label */
+}
+
+.reading-companion button {
+  font-size: 1em; /* Keep buttons consistent with text */
+}
+
+.reading-companion input,
+.reading-companion textarea {
+  font-size: 1em; /* Keep input and textarea consistent */
+}
+
+.reading-companion .section-content {
+  font-size: 1.1em; /* Slightly larger text for main content */
+  line-height: 1.6; /* Improved line height for readability */
+}

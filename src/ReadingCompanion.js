@@ -1,50 +1,10 @@
 import React, { useState, useEffect } from 'react';
-
-const Textarea = ({ value, onChange, placeholder, className }) => (
-  <textarea
-    value={value}
-    onChange={onChange}
-    placeholder={placeholder}
-    className={`w-full p-2 border rounded ${className}`}
-  />
-);
-
-const Button = ({ onClick, children, className }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${className}`}
-  >
-    {children}
-  </button>
-);
-
-const Checkbox = ({ id, checked, onCheckedChange }) => (
-  <input
-    type="checkbox"
-    id={id}
-    checked={checked}
-    onChange={(e) => onCheckedChange(e.target.checked)}
-  />
-);
-
-const Input = ({ value, onChange, placeholder, className }) => (
-  <input
-    type="text"
-    value={value}
-    onChange={onChange}
-    placeholder={placeholder}
-    className={`w-full p-2 border rounded ${className}`}
-  />
-);
-
-const Progress = ({ value, className }) => (
-  <div className={`w-full bg-gray-200 rounded ${className}`}>
-    <div
-      className="bg-blue-500 rounded h-2"
-      style={{ width: `${value}%` }}
-    ></div>
-  </div>
-);
+import { segmentTranscript, generateGist, generateReflectionPrompt } from './utils/textProcessing';
+import Textarea from './components/Textarea';
+import Button from './components/Button';
+import Checkbox from './components/Checkbox';
+import Input from './components/Input';
+import Progress from './components/Progress';
 
 const ReadingCompanion = () => {
   const [text, setText] = useState('');
@@ -56,65 +16,6 @@ const ReadingCompanion = () => {
     setText(e.target.value);
   };
 
-  const segmentTranscript = (text) => {
-    // Split the text into lines
-    const lines = text.split(/\r?\n/);
-    const segments = [];
-    let currentSegment = [];
-    let inBulletList = false;
-  
-    const isBulletPoint = (line) => /^[\s]*[-•*]\s/.test(line.trim());
-  
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const nextLine = lines[i + 1] || '';
-  
-      if (isBulletPoint(line)) {
-        if (!inBulletList && currentSegment.length > 0) {
-          segments.push(currentSegment.join('\n'));
-          currentSegment = [];
-        }
-        inBulletList = true;
-        currentSegment.push(line);
-      } else if (inBulletList && !isBulletPoint(nextLine) && nextLine.trim() !== '') {
-        // End of bullet list
-        currentSegment.push(line);
-        segments.push(currentSegment.join('\n'));
-        currentSegment = [];
-        inBulletList = false;
-      } else if (line.trim() === '' && nextLine.trim() === '') {
-        // Double newline detected
-        if (currentSegment.length > 0) {
-          segments.push(currentSegment.join('\n'));
-          currentSegment = [];
-        }
-        inBulletList = false;
-      } else {
-        if (currentSegment.length === 0 || inBulletList) {
-          currentSegment.push(line);
-        } else {
-          segments.push(currentSegment.join('\n'));
-          currentSegment = [line];
-        }
-      }
-    }
-  
-    // Add the last segment if there's anything left
-    if (currentSegment.length > 0) {
-      segments.push(currentSegment.join('\n'));
-    }
-  
-    return segments.map(segment => ({
-      content: segment.trim(),
-      timestamp: '' // We're ignoring timestamps for now
-    })).filter(segment => segment.content !== ''); // Remove empty segments
-  };
-
-  const generateGist = (content) => {
-    // Simple gist generation: take the first 5-7 words
-    const words = content.split(/\s+/);
-    return words.slice(0, Math.min(7, Math.max(5, Math.floor(words.length / 4)))).join(' ') + '...';
-  };
 
   const processParagraphs = () => {
     const segmentedSections = segmentTranscript(text);
@@ -138,20 +39,6 @@ const ReadingCompanion = () => {
     setSections(prev => prev.map((s, i) => 
       i === index ? { ...s, annotation } : s
     ));
-  };
-
-  const generateReflectionPrompt = (content) => {
-    if (content.length > 200) {
-      const prompts = [
-        "What's the main point here?",
-        "How does this relate to the overall topic?",
-        "Any key terms or concepts introduced?",
-        "What questions does this raise?",
-        "How might this information be applied?"
-      ];
-      return prompts[Math.floor(Math.random() * prompts.length)];
-    }
-    return '';
   };
 
   useEffect(() => {
@@ -188,57 +75,86 @@ const ReadingCompanion = () => {
     return <div dangerouslySetInnerHTML={{ __html: formattedContent }} style={{ whiteSpace: 'pre-wrap' }} />;
   };
 
+  const progressBarStyle = {
+    width: '100%',
+    backgroundColor: '#e0e0e0',
+    borderRadius: '9999px',
+    height: '10px',
+    overflow: 'hidden',
+  };
+
+  const progressStyle = {
+    width: `${progress}%`,
+    backgroundColor: '#3b82f6', // blue-500
+    height: '100%',
+    borderRadius: '9999px',
+    transition: 'width 0.5s ease-in-out',
+  };
+
   return (
-    <div className="w-full p-4 space-y-4">
-      <div className="bg-white p-4 shadow-md">
-        <Progress value={progress} className="w-full" />
-        <div className="flex justify-between text-sm text-gray-600 mt-2">
-          <span>{readCount} sections read</span>
+    <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '2rem', backgroundColor: '#f3f4f6' }}>
+      <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#1f2937' }}>Reading Companion</h1>
+      <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)', marginBottom: '1.5rem' }}>
+        <div style={{ marginBottom: '0.5rem', fontWeight: '600', color: '#4b5563' }}>Progress</div>
+        <div style={progressBarStyle}>
+          <div style={progressStyle}></div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
+          <span>{readCount} paragraphs read</span>
           <span>{Math.round(progress)}% complete</span>
-          <span>{sections.length - readCount} sections left</span>
+          <span>{sections.length - readCount} paragraphs left</span>
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <Textarea 
           value={text}
           onChange={handleTextChange}
-          placeholder="Paste your transcript or text here..."
-          className="w-full h-40"
+          placeholder="Paste your text here..."
+          className="w-full h-40 mb-4 p-2 border rounded"
         />
-        <Button onClick={processParagraphs} className="mt-2">Process Text</Button>
+        <Button 
+          onClick={processParagraphs} 
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Process Text
+        </Button>
       </div>
       
       <div className="space-y-6">
-      {sections.map((section, index) => (
-        <div key={index} className="border p-4 rounded">
-          <div className="flex-grow">
-            {renderContent(section.content)}
-            <div className="flex items-center space-x-2 mt-2">
+        {sections.map((section, index) => (
+          <div key={index} className="bg-white p-6 rounded-lg shadow-md">
+            <div className="prose max-w-none mb-4">
+              {renderContent(section.content)}
+            </div>
+            <div className="flex items-center space-x-2 mb-4">
               <Checkbox 
                 id={`read-${index}`}
                 checked={section.isRead}
                 onCheckedChange={() => toggleRead(index)}
               />
-              <label htmlFor={`read-${index}`}>
-                Mark as read
+              <label htmlFor={`read-${index}`} className="text-gray-700">
+                Read
               </label>
             </div>
-            {/* ... (reflection prompt and annotation input as before) ... */}
+            <Input 
+              value={section.annotation}
+              onChange={(e) => handleAnnotation(index, e.target.value)}
+              placeholder="Add your annotation..."
+              className="w-full p-2 border rounded"
+            />
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
 
       {sections.length > 0 && (
-        <div className="mt-4">
-          <Textarea 
-            value={text}
-            onChange={handleTextChange}
-            placeholder="Paste your transcript or text here..."
-            className="w-full h-60" // Increased height to h-60
-          />
-          <Button onClick={processParagraphs} className="mt-2">Process Text</Button>
+        <div className="mt-6">
+          <Button 
+            onClick={exportAnnotations}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Export Annotations
+          </Button>
         </div>
       )}
     </div>

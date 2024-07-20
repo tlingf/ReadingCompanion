@@ -1,9 +1,13 @@
 const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
-  entry: './src/index.js',
+  entry: {
+    popup: './src/index.js',
+    tailwind: './tailwind.css'
+  },
   output: {
-    filename: 'popup.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, '.'),
   },
   module: {
@@ -18,11 +22,22 @@ module.exports = {
           },
         },
       },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'postcss-loader',
+        ],
+      },
     ],
   },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'styles.css',
+    }),
+  ],
   resolve: {
     extensions: ['.js', '.jsx'],
   },
-  mode: 'production', // Change this to 'production'
-  devtool: 'cheap-source-map', // Add this line for source maps without using eval
 };
